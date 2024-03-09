@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace API.InOutClock.Shared
 {
-    internal class Shift
+    public class Shift
     {
         public int Id { get; set; }
         public string Description { get; set; }
