@@ -1,0 +1,6 @@
+@API.InOutClock.API_HostAddress = http://localhost:5177
+
+GET {{API.InOutClock.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
