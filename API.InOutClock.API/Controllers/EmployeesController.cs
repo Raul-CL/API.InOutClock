@@ -23,7 +23,7 @@ namespace API.InOutClock.API.Controllers
             return await _context.Employees.ToListAsync();
         }
 
-        [HttpGet("{payrollId}")]
+        [HttpGet("payroll/{payrollId}")]
         public async Task<ActionResult<Employee>> GetEmployeeByPayrollId(string payrollId)
         {
             var employee = await _context.Employees.SingleOrDefaultAsync(emp => emp.PayrollId == payrollId);
@@ -36,7 +36,7 @@ namespace API.InOutClock.API.Controllers
             return employee;
         }
 
-        [HttpGet("{name}")]
+        [HttpGet("name/{name}")]
         public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeeByName(string name)
         {
             var employees = await _context.Employees.Where(emp => emp.NormalizedName.Contains(name)).ToListAsync();
@@ -73,6 +73,31 @@ namespace API.InOutClock.API.Controllers
             }
 
             return employees;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
+        {   
+            if (await _context.Employees.AnyAsync(emp => emp.PayrollId == employee.PayrollId))
+            {
+                return BadRequest("El payrollId ya existe");
+            }
+
+            if (!await _context.Departments.AnyAsync(dep => dep.Id == employee.DepartmentId))
+            {
+                return BadRequest("El departamento no existe");
+            }
+
+            if (!await _context.Shifts.AnyAsync(shift => shift.Id == employee.ShiftId))
+            {
+                return BadRequest("El turno no existe");
+            }
+
+            _context.Employees.Add(employee);
+            await _context.SaveChangesAsync();
+
+            //Retorna 201 Created, con la ruta del recurso creado
+            return CreatedAtAction("GetEmployeeByPayrollId", new { payrollId = employee.PayrollId }, employee);
         }
     }
 }
