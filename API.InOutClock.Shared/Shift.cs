@@ -26,8 +26,8 @@ namespace API.InOutClock.Shared
             }
         }
         [Required]        
-        public DateTime In { get; set; }
+        public TimeOnly In { get; set; }
         [Required]        
-        public DateTime Out { get; set; }
+        public TimeOnly Out { get; set; }
     }
 }

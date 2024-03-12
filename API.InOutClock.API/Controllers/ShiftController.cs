@@ -57,6 +57,16 @@ namespace API.InOutClock.API.Controllers
                 return BadRequest();
             }
 
+            if(await _context.Shifts.AnyAsync(dep => dep.NormalizedDescription == shift.NormalizedDescription))
+            {
+                return BadRequest("Ya existe un turno con la misma descripción");
+            }
+
+            if(await _context.Shifts.AnyAsync(dep => dep.In == shift.In && dep.Out == shift.Out))
+            {
+                return BadRequest("Ya existe un turno con el mismo horario");
+            }
+
             _context.Shifts.Add(shift);
             await _context.SaveChangesAsync();
 
