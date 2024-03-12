@@ -131,7 +131,7 @@ namespace API.InOutClock.API.Controllers
         }
 
         [HttpPatch("{payrollId}")]
-        public async Task<ActionResult<Employee>> PatchShiftEmployee(string payrollId, Shift shift)
+        public async Task<ActionResult<Employee>> PatchShiftEmployee(string payrollId, int shiftId, int departmentId)
         {                                
             var employee = await _context.Employees.SingleOrDefaultAsync(emp => emp.PayrollId == payrollId);
 
@@ -139,35 +139,19 @@ namespace API.InOutClock.API.Controllers
             {
                    return NotFound("El empleado no existe");
             }
-
-            if(!ModelState.IsValid)
+            
+            if (!await _context.Departments.AnyAsync(dep => dep.Id == departmentId))
             {
-                return BadRequest("El turno no es válido");
+                return NotFound("El departamento no existe");
+            }
+
+            if (!await _context.Shifts.AnyAsync(shift => shift.Id == shiftId))
+            {
+                return NotFound("El turno no existe");
             }
             
-            employee.ShiftId = shift.Id;
-            _context.Employees.Update(employee);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        [HttpPatch("{payrollId}")]
-        public async Task<ActionResult<Employee>> PatchDepartmentEmployee(string payrollId, Department department)
-        {
-            var employee = await _context.Employees.SingleOrDefaultAsync(emp => emp.PayrollId == payrollId);
-
-            if (employee == null)
-            {
-                   return NotFound("El empleado no existe");
-            }
-
-            if(!ModelState.IsValid)
-            {
-                return BadRequest("El departamento no es válido");
-            }
-            
-            employee.DepartmentId = department.Id;
+            employee.ShiftId = shiftId;
+            employee.DepartmentId = departmentId;
             _context.Employees.Update(employee);
             await _context.SaveChangesAsync();
 

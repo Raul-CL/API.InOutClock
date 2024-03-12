@@ -69,25 +69,34 @@ namespace API.InOutClock.API.Controllers
             return CreatedAtAction("GetDepartment", new { id = department.Id }, department);
         }
 
-        [HttpPut("{id}")]
+
+        [HttpPut]
         public async Task<IActionResult> PutDepartment(Department department)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest();
-            }
+                // Obtener los errores del modelo
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
 
-            if (await _context.Departments.AnyAsync(dep => dep.Id == department.Id))
-            {
-                _context.Departments.Update(department);
-                await _context.SaveChangesAsync();
-                return Ok(department);
-            }
-            else
+                // Devolver un BadRequest con los errores del modelo
+                return BadRequest(errors);
+            }                      
+
+            if(!await _context.Departments.AnyAsync(dep => dep.Id == department.Id))
             {
                 return NotFound("El departamento no existe");
             }
+
+            if (await _context.Departments.AnyAsync(dep => dep.NormalizedDescription == department.NormalizedDescription))
+            {
+                return BadRequest("La descripción ya existe");
+            }
+            
+            _context.Departments.Update(department);
+            await _context.SaveChangesAsync();
+            return Ok(department);
         }
+
 
         [HttpDelete("{id}")]
         public async Task<ActionResult<Department>> DeleteDepartment(int id)

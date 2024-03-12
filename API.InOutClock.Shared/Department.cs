@@ -11,9 +11,8 @@ namespace API.InOutClock.Shared
     public class Department
     {
         public int Id { get; set; }
-        [Required]
-        [MinLength(3)]
-        [MaxLength(200)]
+        [Required(ErrorMessage = "La propiedad {0} es requerida")]
+        [StringLength(200, MinimumLength = 3, ErrorMessage = "El tamaño de la descripcion debe de ser entre {2} y {1} caracteres")]
         public string Description { get; set; }
         public string NormalizedDescription
         {
