@@ -20,7 +20,7 @@ namespace API.InOutClock.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
         {
-            return await _context.Employees.ToListAsync();
+            return Ok(await _context.Employees.ToListAsync());
         }
 
         [HttpGet("payroll/{payrollId}")]
@@ -33,7 +33,7 @@ namespace API.InOutClock.API.Controllers
                 return NotFound();
             }
 
-            return employee;
+            return Ok(employee);
         }
 
         [HttpGet("name/{name}")]
@@ -46,7 +46,7 @@ namespace API.InOutClock.API.Controllers
                 return NotFound();
             }
 
-            return employees;
+            return Ok(employees);
         }
 
         [HttpGet("department/{departmentId}")]
@@ -59,7 +59,7 @@ namespace API.InOutClock.API.Controllers
                    return NotFound();
             }
 
-            return employees;
+            return Ok(employees);
         }
 
         [HttpGet("shift/{shiftId}")]
@@ -72,17 +72,17 @@ namespace API.InOutClock.API.Controllers
                    return NotFound();
             }
 
-            return employees;
+            return Ok(employees);
         }
 
         [HttpPost]
         public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
-        {   
+        {   //Es importante que el PayrollId sea único
             if (await _context.Employees.AnyAsync(emp => emp.PayrollId == employee.PayrollId))
             {
                 return BadRequest("El payrollId ya existe");
             }
-
+            //El turno y el departamento deben existir en la base de datos
             if (!await _context.Departments.AnyAsync(dep => dep.Id == employee.DepartmentId))
             {
                 return BadRequest("El departamento no existe");
@@ -99,5 +99,52 @@ namespace API.InOutClock.API.Controllers
             //Retorna 201 Created, con la ruta del recurso creado
             return CreatedAtAction("GetEmployeeByPayrollId", new { payrollId = employee.PayrollId }, employee);
         }
+
+        [HttpPut]
+        public async Task<ActionResult<Employee>> PutEmployee(Employee employee)
+        {   //Al actualizar el empleado debe de existir, el nombre debe de ser único tambien dep y turno deben existir
+
+            if (!await _context.Employees.AnyAsync(emp => emp.PayrollId == employee.PayrollId))
+            {
+                return NotFound("El empleado no existe");
+            }
+
+            if (await _context.Employees.AnyAsync(emp => emp.NormalizedName == employee.NormalizedName))
+            {
+                return NotFound("El nombre del empleado ya existe");
+            }
+
+            if (!await _context.Departments.AnyAsync(dep => dep.Id == employee.DepartmentId))
+            {
+                return NotFound("El departamento no existe");
+            }
+
+            if (!await _context.Shifts.AnyAsync(shift => shift.Id == employee.ShiftId))
+            {
+                return NotFound("El turno no existe");
+            }
+
+            _context.Employees.Update(employee);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{payrollId}")]
+        public async Task<ActionResult<Employee>> DeleteEmployee(string payrollId)
+        {
+            var employee = await _context.Employees.SingleOrDefaultAsync(emp => emp.PayrollId == payrollId);
+
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            _context.Employees.Remove(employee);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
     }
 }
