@@ -130,6 +130,50 @@ namespace API.InOutClock.API.Controllers
             return NoContent();
         }
 
+        [HttpPatch("{payrollId}")]
+        public async Task<ActionResult<Employee>> PatchShiftEmployee(string payrollId, Shift shift)
+        {                                
+            var employee = await _context.Employees.SingleOrDefaultAsync(emp => emp.PayrollId == payrollId);
+
+            if (employee == null)
+            {
+                   return NotFound("El empleado no existe");
+            }
+
+            if(!ModelState.IsValid)
+            {
+                return BadRequest("El turno no es válido");
+            }
+            
+            employee.ShiftId = shift.Id;
+            _context.Employees.Update(employee);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpPatch("{payrollId}")]
+        public async Task<ActionResult<Employee>> PatchDepartmentEmployee(string payrollId, Department department)
+        {
+            var employee = await _context.Employees.SingleOrDefaultAsync(emp => emp.PayrollId == payrollId);
+
+            if (employee == null)
+            {
+                   return NotFound("El empleado no existe");
+            }
+
+            if(!ModelState.IsValid)
+            {
+                return BadRequest("El departamento no es válido");
+            }
+            
+            employee.DepartmentId = department.Id;
+            _context.Employees.Update(employee);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         [HttpDelete("{payrollId}")]
         public async Task<ActionResult<Employee>> DeleteEmployee(string payrollId)
         {
