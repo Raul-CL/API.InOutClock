@@ -54,10 +54,12 @@ namespace API.InOutClock.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest();
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+
+                return BadRequest(errors);
             }
 
-            if(await _context.Shifts.AnyAsync(dep => dep.NormalizedDescription == shift.NormalizedDescription))
+            if (await _context.Shifts.AnyAsync(dep => dep.NormalizedDescription == shift.NormalizedDescription))
             {
                 return BadRequest("Ya existe un turno con la misma descripción");
             }
@@ -78,7 +80,9 @@ namespace API.InOutClock.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest();
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+
+                return BadRequest(errors);
             }
 
             if (await _context.Shifts.AnyAsync(shi => shi.Id == shift.Id))

@@ -55,7 +55,9 @@ namespace API.InOutClock.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest();
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+
+                return BadRequest(errors);
             }
 
             if (await _context.Departments.AnyAsync(dep => dep.NormalizedDescription == department.NormalizedDescription))
@@ -74,13 +76,11 @@ namespace API.InOutClock.API.Controllers
         public async Task<IActionResult> PutDepartment(Department department)
         {
             if (!ModelState.IsValid)
-            {
-                // Obtener los errores del modelo
+            {                
                 var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
-
-                // Devolver un BadRequest con los errores del modelo
+                
                 return BadRequest(errors);
-            }                      
+            }
 
             if(!await _context.Departments.AnyAsync(dep => dep.Id == department.Id))
             {

@@ -81,10 +81,8 @@ namespace API.InOutClock.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                // Obtener los errores del modelo
                 var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
 
-                // Devolver un BadRequest con los errores del modelo
                 return BadRequest(errors);
             }
 
@@ -117,7 +115,9 @@ namespace API.InOutClock.API.Controllers
 
             if (!ModelState.IsValid)
             {
-                return BadRequest();
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+
+                return BadRequest(errors);
             }
 
             if (await _context.Employees.AnyAsync(emp => emp.NormalizedName == employee.NormalizedName))
