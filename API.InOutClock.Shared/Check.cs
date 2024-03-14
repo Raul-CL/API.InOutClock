@@ -19,6 +19,8 @@ namespace API.InOutClock.Shared
         [Required]
         public int DepartmentId { get; set; }
         [Required]
-        public int ShiftId { get; set; }        
+        public int ShiftId { get; set; }
+        [Required]
+        public int RecordEvaluation { get; set; }
     }
 }
