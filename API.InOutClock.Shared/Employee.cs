@@ -11,22 +11,20 @@ namespace API.InOutClock.Shared
     {
         public int Id { get; set; }
         [Required]
+        [StringLength(12, MinimumLength = 3, ErrorMessage = "El tamaño de {0} debe de ser entre {2} y {1} caracteres")]
         public string PayrollId { get; set; }
-        [Required]
-        [MinLength(3)]
-        [MaxLength(100)]
+        [Required(ErrorMessage = "La propiedad {0} es requerida")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "El tamaño de {0} debe de ser entre {2} y {1} caracteres")]
         public string Name { get; set; }
-        [Required]
-        [MinLength(3)]
-        [MaxLength(100)]
+        [Required(ErrorMessage = "La propiedad {0} es requerida")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "El tamaño de {0} debe de ser entre {2} y {1} caracteres")]
         public string LastName { get; set; }
-        [Required]
-        [MaxLength(200)]
+        [Required]        
         public string NormalizedName
         {
             get
             {//Importante no dejar espacios en blanco
-                return $"{Name.ToUpper()}{LastName.ToUpper()}".TrimEnd().TrimStart();
+                return $"{Name.ToUpper().Replace(" ", "")}{LastName.ToUpper().Replace(" ", "")}";
             }
             set
             {

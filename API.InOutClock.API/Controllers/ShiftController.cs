@@ -73,7 +73,7 @@ namespace API.InOutClock.API.Controllers
             return CreatedAtAction("GetShift", new { id = shift.Id }, shift);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
         public async Task<IActionResult> PutShift(int id, Shift shift)
         {
             if (!ModelState.IsValid)

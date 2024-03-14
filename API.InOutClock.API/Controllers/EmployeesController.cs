@@ -39,7 +39,8 @@ namespace API.InOutClock.API.Controllers
         [HttpGet("name/{name}")]
         public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeeByName(string name)
         {
-            var employees = await _context.Employees.Where(emp => emp.NormalizedName.Contains(name)).ToListAsync();
+            var normalizedName = name.ToUpper().Replace(" ", "");
+            var employees = await _context.Employees.Where(emp => emp.NormalizedName.Contains(normalizedName)).ToListAsync();
 
             if (employees == null || employees.Count == 0)
             {
@@ -77,7 +78,17 @@ namespace API.InOutClock.API.Controllers
 
         [HttpPost]
         public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
-        {   //Es importante que el PayrollId sea único
+        {
+            if (!ModelState.IsValid)
+            {
+                // Obtener los errores del modelo
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+
+                // Devolver un BadRequest con los errores del modelo
+                return BadRequest(errors);
+            }
+
+            //Es importante que el PayrollId sea único
             if (await _context.Employees.AnyAsync(emp => emp.PayrollId == employee.PayrollId))
             {
                 return BadRequest("El payrollId ya existe");
@@ -104,9 +115,9 @@ namespace API.InOutClock.API.Controllers
         public async Task<ActionResult<Employee>> PutEmployee(Employee employee)
         {   //Al actualizar el empleado debe de existir, el nombre debe de ser único tambien dep y turno deben existir
 
-            if (!await _context.Employees.AnyAsync(emp => emp.PayrollId == employee.PayrollId))
+            if (!ModelState.IsValid)
             {
-                return NotFound("El empleado no existe");
+                return BadRequest();
             }
 
             if (await _context.Employees.AnyAsync(emp => emp.NormalizedName == employee.NormalizedName))
@@ -155,7 +166,7 @@ namespace API.InOutClock.API.Controllers
             _context.Employees.Update(employee);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return CreatedAtAction("GetEmployeeByPayrollId", new { payrollId = employee.PayrollId }, employee); 
         }
 
         [HttpDelete("{payrollId}")]
