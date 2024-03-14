@@ -23,7 +23,7 @@ namespace API.InOutClock.Shared
         public string NormalizedName
         {
             get
-            {//Importante no dejar espacios en blanco
+            {
                 return $"{Name.ToUpper().Replace(" ", "")}{LastName.ToUpper().Replace(" ", "")}";
             }
             set

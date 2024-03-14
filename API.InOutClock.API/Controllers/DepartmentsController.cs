@@ -62,15 +62,14 @@ namespace API.InOutClock.API.Controllers
 
             if (await _context.Departments.AnyAsync(dep => dep.NormalizedDescription == department.NormalizedDescription))
             {
-                return BadRequest();
-            }
+                return BadRequest("La descripción ya existe");
+            }            
 
             _context.Departments.Add(department);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetDepartment", new { id = department.Id }, department);
         }
-
 
         [HttpPut]
         public async Task<IActionResult> PutDepartment(Department department)
@@ -110,7 +109,7 @@ namespace API.InOutClock.API.Controllers
             _context.Departments.Remove(department);
             await _context.SaveChangesAsync();
 
-            return Ok(department);
+            return NoContent();
         }
   
     }

@@ -76,7 +76,7 @@ namespace API.InOutClock.API.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> PutShift(int id, Shift shift)
+        public async Task<IActionResult> PutShift(Shift shift)
         {
             if (!ModelState.IsValid)
             {
@@ -110,7 +110,7 @@ namespace API.InOutClock.API.Controllers
             _context.Shifts.Remove(shift);
             await _context.SaveChangesAsync();
 
-            return Ok(shift);
+            return NoContent();
         }
     }
 }

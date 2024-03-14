@@ -17,8 +17,8 @@ namespace API.InOutClock.Shared
         public string NormalizedDescription
         {
             get
-            {//Importante no dejar espacios en blanco
-                return $"{Description.ToUpper()}".TrimEnd().TrimStart();
+            {
+                return $"{Description.ToUpper()}".Replace(" ", "");
             }
             set
             {

@@ -85,13 +85,17 @@ namespace API.InOutClock.API.Controllers
 
                 return BadRequest(errors);
             }
-
-            //Es importante que el PayrollId sea único
+            
             if (await _context.Employees.AnyAsync(emp => emp.PayrollId == employee.PayrollId))
             {
                 return BadRequest("El payrollId ya existe");
             }
-            //El turno y el departamento deben existir en la base de datos
+
+            if (await _context.Employees.AnyAsync(emp => emp.NormalizedName == employee.NormalizedName))
+            {
+                return BadRequest("El nombre del empleado ya existe");
+            }
+            
             if (!await _context.Departments.AnyAsync(dep => dep.Id == employee.DepartmentId))
             {
                 return BadRequest("El departamento no existe");
@@ -104,8 +108,7 @@ namespace API.InOutClock.API.Controllers
 
             _context.Employees.Add(employee);
             await _context.SaveChangesAsync();
-
-            //Retorna 201 Created, con la ruta del recurso creado
+            
             return CreatedAtAction("GetEmployeeByPayrollId", new { payrollId = employee.PayrollId }, employee);
         }
 
@@ -125,6 +128,11 @@ namespace API.InOutClock.API.Controllers
                 return NotFound("El nombre del empleado ya existe");
             }
 
+            if (await _context.Employees.AnyAsync(emp => emp.PayrollId == employee.PayrollId))
+            {
+                return NotFound("El payroll Id ya existe");
+            }
+
             if (!await _context.Departments.AnyAsync(dep => dep.Id == employee.DepartmentId))
             {
                 return NotFound("El departamento no existe");
@@ -138,13 +146,13 @@ namespace API.InOutClock.API.Controllers
             _context.Employees.Update(employee);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(employee);
         }
 
-        [HttpPatch("{payrollId}")]
-        public async Task<ActionResult<Employee>> PatchShiftEmployee(string payrollId, int shiftId, int departmentId)
+        [HttpPatch]
+        public async Task<ActionResult<Employee>> PatchShiftEmployee(int id, int shiftId, int departmentId)
         {                                
-            var employee = await _context.Employees.SingleOrDefaultAsync(emp => emp.PayrollId == payrollId);
+            var employee = await _context.Employees.SingleOrDefaultAsync(emp => emp.Id == id);
 
             if (employee == null)
             {
@@ -169,10 +177,10 @@ namespace API.InOutClock.API.Controllers
             return CreatedAtAction("GetEmployeeByPayrollId", new { payrollId = employee.PayrollId }, employee); 
         }
 
-        [HttpDelete("{payrollId}")]
-        public async Task<ActionResult<Employee>> DeleteEmployee(string payrollId)
+        [HttpDelete]
+        public async Task<ActionResult<Employee>> DeleteEmployee(int id)
         {
-            var employee = await _context.Employees.SingleOrDefaultAsync(emp => emp.PayrollId == payrollId);
+            var employee = await _context.Employees.SingleOrDefaultAsync(emp => emp.Id == id);
 
             if (employee == null)
             {
