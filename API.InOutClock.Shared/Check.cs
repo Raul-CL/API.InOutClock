@@ -21,6 +21,6 @@ namespace API.InOutClock.Shared
         [Required]
         public int ShiftId { get; set; }
         [Required]
-        public int RecordEvaluation { get; set; }
+        public bool RecordEvaluation { get; set; }
     }
 }
