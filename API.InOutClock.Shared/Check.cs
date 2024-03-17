@@ -15,6 +15,7 @@ namespace API.InOutClock.Shared
         [Required]
         public DateTime Record { get; set; }
         [Required]
+        [Range(0, 1)]//Se utiliza int y no bool, por que a futuro puedo requerir valores de entrada y salida a comer
         public int TypeOfCheck { get; set; }
         [Required]
         public int DepartmentId { get; set; }

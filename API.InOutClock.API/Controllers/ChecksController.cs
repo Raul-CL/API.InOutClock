@@ -23,6 +23,19 @@ namespace API.InOutClock.API.Controllers
             return Ok(await _context.Checks.ToListAsync());
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Check>> GetCheck(int id)
+        {
+            var check = await _context.Checks.SingleOrDefaultAsync(che => che.Id == id);
+
+            if (check == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(check);
+        }
+
         [HttpGet("employee/{employeeId}")]
         public async Task<ActionResult<IEnumerable<Check>>> GetChecksByEmployee(int employeeId)
         {
@@ -61,7 +74,7 @@ namespace API.InOutClock.API.Controllers
 
             return Ok(checks);
         }
-
+        
         [HttpPost]
         public async Task<ActionResult<Check>> PostCheck(Check check)
         {
@@ -71,7 +84,7 @@ namespace API.InOutClock.API.Controllers
 
                 return BadRequest(errors);
             }
-
+            
             if (!await _context.Employees.AnyAsync(emp => emp.Id == check.EmployeeId))
             {
                 return BadRequest("El empleado no existe");
@@ -82,40 +95,41 @@ namespace API.InOutClock.API.Controllers
                 return BadRequest("El empleado ya tiene una checada de este tipo en el día");
             }
 
-            if (check.TypeOfCheck != 0 || check.TypeOfCheck != 1)
+            if (check.TypeOfCheck != 0 && check.TypeOfCheck != 1)
             {
                 return BadRequest("El tipo de checada no es válido");
             }
-            
-            //Asignamos el valor de la evaluacion de la checada
-            check.RecordEvaluation = await RecordEvaluation(check.TypeOfCheck, check.Record, check.ShiftId);
 
+            //Obtengo empleado para obtener su turno actual, es importante evaluar siempre con el turno que se tiene al momento de checar
+            var employee = await _context.Employees.SingleOrDefaultAsync(emp => emp.Id == check.EmployeeId);
+
+            //Asignamos el valor de la evaluacion de la checada, turno y departemento por usuario
+            check.DepartmentId = employee.DepartmentId;
+            check.ShiftId = employee.ShiftId;
+
+            check.RecordEvaluation = await RecordEvaluation(check.TypeOfCheck, check.Record, employee.ShiftId);
 
             _context.Checks.Add(check);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetCheck", new { id = check.Id }, check);
         }
-
+        /*
+         El metodo RecordEvaluation recibe el tipo de checada, el check en datetime por que tambien requiero la fecha y el shiftId
+         en este metodo evaluo si la checada que hace el empleado es correcta o incorrecta, de esta menera poder auditar si el empleado
+         esta incurriendo en faltas o llegadas tardes 
+         */
         private async Task<bool> RecordEvaluation(int typeOfCheck, DateTime record, int shiftId)
-        {   /*
-            Aqui evaluo la checada, primero obtengo el turno del empleado y posterior ajusto el tiempo de la checada aumentando
-            15 minutos por tolerancia, para evaluar si la checada es correcta o incorrecta obtengo el tipo de checada (entrada o salida)
-            y con este dato evaluo que la diferencia en la hora de entrada y la hora de checada sea igual o que la hora de checada sea menor
-            y para la salida evaluo que la checada sea mayor o igual a la que tiene en su turno.
-
-            Esto forma parte de la logica de negocio de mi proyecto, algunos valores o logica podrian cambiar dependiendo de los requerimientos.
-             */
-
+        {   //Obtengo turno yconvierto la hora de la checada a TimeOnly para comparar horarios de checada
             var shift = await _context.Shifts.SingleOrDefaultAsync(s => s.Id == shiftId);
-            var timeOfCheck = record.TimeOfDay.Subtract(TimeSpan.FromMinutes(15));
-                
+            var timeOfCheck = TimeOnly.FromDateTime(record);
 
-            //0 == entrada y 1 == salida
+            
+            //ENTRADA
             if (typeOfCheck == 0)
-            {
-                if (timeOfCheck.CompareTo(shift.In) >= 0 || timeOfCheck.CompareTo(shift.In) >= -1)
-                {//0 == incorrecto y 1 == correcto
+            {//En entrada se evalua si la checada menos el tiempo de tolerancia (15 minutos) es menor o igual a la hora de entrada
+                if (timeOfCheck.AddMinutes(-15) <= shift.In)
+                {
                     return true;
                 }
                 else
@@ -124,11 +138,11 @@ namespace API.InOutClock.API.Controllers
                 }
             }
 
-            //0 == entrada y 1 == salida
+            //SALIDA
             if (typeOfCheck == 1)
-            {
-                if (timeOfCheck.CompareTo(shift.Out) >= 0 || timeOfCheck.CompareTo(shift.Out) >= 1)
-                {//0 == incorrecto y 1 == correcto
+            {//En salida se evalua si la checada mas el tiempo de tolerancia (15 minutos) es mayor o igual a la hora de salida
+                if (timeOfCheck.AddMinutes(15) >= shift.Out)
+                {
                     return true;
                 }
                 else
