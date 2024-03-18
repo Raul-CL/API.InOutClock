@@ -3,6 +3,7 @@ using API.InOutClock.Shared;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Authentication.ExtendedProtection;
 
 namespace API.InOutClock.API.Controllers
 {
@@ -39,7 +40,7 @@ namespace API.InOutClock.API.Controllers
         [HttpGet("employee/{employeeId}")]
         public async Task<ActionResult<IEnumerable<Check>>> GetChecksByEmployee(int employeeId)
         {
-            var checks = await _context.Checks.SingleOrDefaultAsync(chk => chk.EmployeeId == employeeId);
+            var checks = await _context.Checks.Where(chk => chk.EmployeeId == employeeId).ToListAsync();
 
             if (checks == null)
             {
@@ -49,10 +50,14 @@ namespace API.InOutClock.API.Controllers
             return Ok(checks);
         }
 
-        [HttpGet("day/{day}")]
-        public async Task<ActionResult<IEnumerable<Check>>> GetChecksByDay(DayOfWeek day)
+        [HttpGet("date1/{date1}-date2/{date2}")]
+        public async Task<ActionResult<IEnumerable<Check>>> GetChecksByDate(DateTime date1, DateTime date2)
         {
-            var checks = await _context.Checks.Where(chk => chk.Record.DayOfWeek == day).ToListAsync();
+            var checks = await _context.Checks
+                .Where(chk => chk.Record.Date >= date1.Date && chk.Record.Date <= date2.Date)
+                .OrderBy(chk => chk.EmployeeId)
+                .ThenBy(chk => chk.Record)
+                .ToListAsync();
 
             if (checks == null || checks.Count == 0)
             {
