@@ -1,15 +1,12 @@
 ﻿using API.InOutClock.Shared;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-
-
 
 namespace API.InOutClock.Data
 {
-    public class APIInOutClockContext : DbContext
+    public class APIInOutClockContext : IdentityDbContext
     {
-        public APIInOutClockContext(DbContextOptions options) : base(options)
-        {
-        }
+        public APIInOutClockContext(DbContextOptions options) : base(options) { }
         
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Department> Departments { get; set; }
