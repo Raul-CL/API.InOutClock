@@ -1,6 +1,8 @@
+using API.InOutClock.API.Configurations;
 using API.InOutClock.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -11,31 +13,38 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-
-//Autenticacion con JWT
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {   options.RequireHttpsMetadata = false;
-        options.SaveToken = true;
-        options.TokenValidationParameters = new TokenValidationParameters()
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            //ValidIssuer = "http://localhost:5000",
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            //ValidAudience = "http://localhost:5000",
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-        };
-    });
-
-
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<APIInOutClockContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("APIInOutClockContext")));
+
+//Inyectar configuracion de JWT, JwtConfig es una clase que contiene las propiedades del token
+builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JwtConfig"));
+
+//Configuracion de parametros de validacion del token
+var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("JwtConfig:Secret").Value);
+var tokenValidationParameters = new TokenValidationParameters()
+{
+    ValidateIssuerSigningKey = true,
+    IssuerSigningKey = new SymmetricSecurityKey(key),
+    ValidateIssuer = false,
+    ValidateAudience = false,
+    RequireExpirationTime = false,
+    ValidateLifetime = true
+};
+
+//Configuracion de autenticacion para JWT, esquema predeterminado
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(jwt =>
+{        
+    jwt.SaveToken = true;
+    jwt.RequireHttpsMetadata = false;
+    jwt.TokenValidationParameters = tokenValidationParameters;    
+});
 
 var app = builder.Build();
 
@@ -47,7 +56,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-//JWT Importante el orden
+
+//Habilitar autenticacion y autorizacion
 app.UseAuthentication();
 app.UseAuthorization();
 
