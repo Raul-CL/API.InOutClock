@@ -1,8 +1,14 @@
 ﻿using API.InOutClock.API.Configurations;
+using API.InOutClock.Shared.Auth;
+using API.InOutClock.Shared.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace API.InOutClock.API.Controllers
 {
@@ -18,5 +24,85 @@ namespace API.InOutClock.API.Controllers
             _userManager = userManager;
             _jwtConfig = jwtConfig.Value;
         }
+        [HttpPost("Register")]
+        public async Task<IActionResult> Register([FromBody] UserRegistrationRequestDTO request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+
+                return BadRequest(errors);
+            }
+
+            //Validamos si el usuario ya existe
+            var existingUser = await _userManager.FindByEmailAsync(request.Email);
+
+            if (existingUser != null)
+            {
+                return BadRequest(new AuthResult()
+                {
+                    Success = false,
+                    Errors = new List<string>() { "El usuario ya existe" }
+                });
+            }
+
+            //Crear usuario
+            var user = new IdentityUser()
+            {
+                Email = request.Email,
+                UserName = request.Email
+            };
+            
+            var isCreated = await _userManager.CreateAsync(user);
+
+            //Si el usuario fue creado exitosamente, generamos el token
+            if (isCreated.Succeeded) 
+            {
+                var token = GenerateJwtToken(user);
+                return Ok(new AuthResult()
+                {
+                    Success = true,
+                    Token = token
+                });
+            }//Si no, devolvemos los errores
+            else
+            {
+                var errors = new List<string>();
+                foreach (var item in isCreated.Errors) 
+                    errors.Add(item.Description);
+
+                return BadRequest(new AuthResult()
+                {
+                    Success = false,
+                    Errors = errors
+                });
+            }
+        }
+
+        private string GenerateJwtToken(IdentityUser user)
+        {
+            var jwtTokenHandler = new JwtSecurityTokenHandler();
+
+            var key = Encoding.UTF8.GetBytes(_jwtConfig.Secret);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new ClaimsIdentity(new []
+                {
+                    new Claim("Id", user.Id),
+
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+                    new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), //Identificador unico del token
+                    new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString())
+                })),
+                Expires = DateTime.UtcNow.AddHours(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
+            };
+
+            var token = jwtTokenHandler.CreateToken(tokenDescriptor);
+
+            return jwtTokenHandler.WriteToken(token);
+        }   
     }
 }

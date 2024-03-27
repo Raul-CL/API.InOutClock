@@ -1,6 +1,7 @@
 using API.InOutClock.API.Configurations;
 using API.InOutClock.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
@@ -32,6 +33,11 @@ var tokenValidationParameters = new TokenValidationParameters()
     RequireExpirationTime = false,
     ValidateLifetime = true
 };
+
+//Desactivar confirmacion de cuenta, se agregara confirmacion por email
+builder.Services.AddDefaultIdentity<IdentityUser>(options => 
+    options.SignIn.RequireConfirmedAccount = false)
+    .AddEntityFrameworkStores<APIInOutClockContext>();
 
 //Configuracion de autenticacion para JWT, esquema predeterminado
 builder.Services.AddAuthentication(options =>
