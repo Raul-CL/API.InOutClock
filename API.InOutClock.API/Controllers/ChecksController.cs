@@ -1,5 +1,6 @@
 ﻿using API.InOutClock.Data;
 using API.InOutClock.Shared;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using System.Security.Authentication.ExtendedProtection;
 
 namespace API.InOutClock.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ChecksController : ControllerBase

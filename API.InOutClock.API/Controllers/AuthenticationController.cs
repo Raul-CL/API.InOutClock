@@ -1,7 +1,6 @@
 ﻿using API.InOutClock.API.Configurations;
 using API.InOutClock.Shared.Auth;
 using API.InOutClock.Shared.DTO;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -12,6 +11,7 @@ using System.Text;
 
 namespace API.InOutClock.API.Controllers
 {
+    
     [Route("api/[controller]")]
     [ApiController]
     public class AuthenticationController : ControllerBase
@@ -24,6 +24,7 @@ namespace API.InOutClock.API.Controllers
             _userManager = userManager;
             _jwtConfig = jwtConfig.Value;
         }
+
         [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] UserRegistrationRequestDTO request)
         {
@@ -50,10 +51,10 @@ namespace API.InOutClock.API.Controllers
             var user = new IdentityUser()
             {
                 Email = request.Email,
-                UserName = request.Email
+                UserName = request.Email                                
             };
             
-            var isCreated = await _userManager.CreateAsync(user);
+            var isCreated = await _userManager.CreateAsync(user, request.Password);
 
             //Si el usuario fue creado exitosamente, generamos el token
             if (isCreated.Succeeded) 
@@ -79,6 +80,50 @@ namespace API.InOutClock.API.Controllers
             }
         }
 
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] UserLoginRequestDTO request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+
+                return BadRequest(errors);
+            }
+
+            //Validamos si el usuario existe
+            var existingUser = await _userManager.FindByEmailAsync(request.Email);
+
+            if (existingUser == null)
+            {
+                return BadRequest(new AuthResult()
+                {
+                    Errors = new List<string>() { "Usuario y/o contraseña incorrectos" },
+                    Success = false
+                });
+            }
+
+            //Validamos si la contraseña es correcta, CheckPasswordAsync devuelve un booleano comparando contraseñas
+            var isCorrect = await _userManager.CheckPasswordAsync(existingUser, request.Password);
+
+            if (!isCorrect)
+            {
+                return BadRequest(new AuthResult()
+                {
+                    Success = false,
+                    Errors = new List<string>() { "Usuario y/o contraseña incorrectos" }
+                });
+            }
+
+            //Si el usuario existe y la contraseña es correcta, generamos el token
+            var token = GenerateJwtToken(existingUser);
+
+            return Ok(new AuthResult()
+            {
+                Success = true,
+                Token = token
+            });
+        }
+
         private string GenerateJwtToken(IdentityUser user)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
@@ -96,7 +141,7 @@ namespace API.InOutClock.API.Controllers
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), //Identificador unico del token
                     new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString())
                 })),
-                Expires = DateTime.UtcNow.AddHours(1),
+                //Expires = DateTime.UtcNow.AddHours(12),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             };
 
