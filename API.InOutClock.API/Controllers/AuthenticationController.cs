@@ -51,8 +51,8 @@ namespace API.InOutClock.API.Controllers
             var user = new IdentityUser()
             {
                 Email = request.Email,
-                UserName = request.Email                                
-            };
+                UserName = request.Email                
+            };            
             
             var isCreated = await _userManager.CreateAsync(user, request.Password);
 
@@ -141,7 +141,7 @@ namespace API.InOutClock.API.Controllers
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), //Identificador unico del token
                     new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString())
                 })),
-                //Expires = DateTime.UtcNow.AddHours(12),
+                Expires = DateTime.UtcNow.AddYears(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             };
 
