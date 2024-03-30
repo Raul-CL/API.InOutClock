@@ -11,9 +11,7 @@ using System.Security.Claims;
 using System.Text;
 
 namespace API.InOutClock.API.Controllers
-{
-
-    [Authorize]
+{    
     [Route("api/[controller]")]
     [ApiController]
     public class AuthenticationController : ControllerBase
@@ -26,8 +24,7 @@ namespace API.InOutClock.API.Controllers
             _userManager = userManager;
             _jwtConfig = jwtConfig.Value;
         }
-
-        [AllowAnonymous]
+        
         [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] UserRegistrationRequestDTO request)
         {
