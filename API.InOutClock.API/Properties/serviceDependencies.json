@@ -1,9 +1,3 @@
 {
-  "dependencies": {
-    "mssql1": {
-      "type": "mssql",
-      "connectionId": "ConnectionStrings:APIInOutClockContext",
-      "dynamicId": null
-    }
-  }
+  "dependencies": {}
 }
