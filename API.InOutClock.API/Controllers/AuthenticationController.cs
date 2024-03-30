@@ -1,6 +1,7 @@
 ﻿using API.InOutClock.API.Configurations;
 using API.InOutClock.Shared.Auth;
 using API.InOutClock.Shared.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -11,7 +12,8 @@ using System.Text;
 
 namespace API.InOutClock.API.Controllers
 {
-    
+
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthenticationController : ControllerBase
@@ -25,6 +27,7 @@ namespace API.InOutClock.API.Controllers
             _jwtConfig = jwtConfig.Value;
         }
 
+        [AllowAnonymous]
         [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] UserRegistrationRequestDTO request)
         {
