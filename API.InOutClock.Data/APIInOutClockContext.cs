@@ -1,10 +1,11 @@
 ﻿using API.InOutClock.Shared;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.InOutClock.Data
 {
-    public class APIInOutClockContext : IdentityDbContext
+    public class APIInOutClockContext : IdentityDbContext<IdentityUser, IdentityRole, string>
     {
         public APIInOutClockContext(DbContextOptions options) : base(options) { }
         

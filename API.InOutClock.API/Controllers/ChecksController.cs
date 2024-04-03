@@ -20,12 +20,14 @@ namespace API.InOutClock.API.Controllers
             _context = context;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Check>>> GetChecks()
         {
             return Ok(await _context.Checks.ToListAsync());
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Check>> GetCheck(int id)
         {
@@ -39,6 +41,7 @@ namespace API.InOutClock.API.Controllers
             return Ok(check);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("employee/{employeeId}")]
         public async Task<ActionResult<IEnumerable<Check>>> GetChecksByEmployee(int employeeId)
         {
@@ -52,6 +55,7 @@ namespace API.InOutClock.API.Controllers
             return Ok(checks);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("date1/{date1}-date2/{date2}")]
         public async Task<ActionResult<IEnumerable<Check>>> GetChecksByDate(DateTime date1, DateTime date2)
         {
@@ -69,6 +73,7 @@ namespace API.InOutClock.API.Controllers
             return Ok(checks);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("department/{departmentId}")]
         public async Task<ActionResult<IEnumerable<Check>>> GetChecksByDepartment(int departmentId)
         {

@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace API.InOutClock.API.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class DepartmentsController : ControllerBase
@@ -97,7 +97,6 @@ namespace API.InOutClock.API.Controllers
             await _context.SaveChangesAsync();
             return Ok(department);
         }
-
 
         [HttpDelete("{id}")]
         public async Task<ActionResult<Department>> DeleteDepartment(int id)

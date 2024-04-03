@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace API.InOutClock.API.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class ShiftController : ControllerBase

@@ -1,5 +1,6 @@
 using API.InOutClock.API.Configurations;
 using API.InOutClock.Data;
+using IdentityModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -73,12 +74,14 @@ var tokenValidationParameters = new TokenValidationParameters()
     ValidateIssuer = false,
     ValidateAudience = false,
     RequireExpirationTime = false,
-    ValidateLifetime = true
+    ValidateLifetime = true,
+    RoleClaimType = JwtClaimTypes.Role //Validamos Roles con claim de tipo Role
 };
 
 //Desactivar confirmacion de cuenta, se agregara confirmacion por email
 builder.Services.AddDefaultIdentity<IdentityUser>(options => 
     options.SignIn.RequireConfirmedAccount = false)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<APIInOutClockContext>();
 
 //Configuracion de autenticacion para JWT, esquema predeterminado
